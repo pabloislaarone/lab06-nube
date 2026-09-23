@@ -1,7 +1,7 @@
 import sqlite3 from 'sqlite3';
 import path from 'path';
 
-// Esto creará un archivo 'securedocs.db' en la raíz de tu proyecto
+// Archivo de base de datos en la raíz del proyecto
 const dbPath = path.resolve(__dirname, '../securedocs.db');
 
 const db = new sqlite3.Database(dbPath, (err) => {
@@ -91,25 +91,47 @@ export const initDB = () => {
       motivo TEXT
     )`);
 
+    // --- Insertar datos semilla (Seeders para las Pruebas) ---
     db.get("SELECT COUNT(*) AS count FROM Usuario", [], (err, row: any) => {
       if (err) {
         console.error("Error consultando usuarios:", err);
         return;
       }
       
-      // Solo inserta si no hay usuarios en la base de datos
       if (row.count === 0) {
-        // Insertar Departamento base
-        db.run(`INSERT INTO Departamento (nombre) VALUES ('SISTEMAS')`);
+        // Departamentos
+        db.run(`INSERT INTO Departamento (nombre) VALUES ('FINANZAS'), ('RRHH'), ('SISTEMAS')`);
         
-        // Insertar Rol base
-        db.run(`INSERT INTO Rol (nombre) VALUES ('ADMINISTRADOR')`);
+        // Roles (RBAC)
+        db.run(`INSERT INTO Rol (nombre) VALUES ('ADMINISTRADOR'), ('GERENTE'), ('SUPERVISOR'), ('EMPLEADO'), ('AUDITOR'), ('INVITADO')`);
         
-        // Insertar Usuario Administrador
-        db.run(`INSERT INTO Usuario (nombre, correo, password, rol_id, departamento_id, nivel_seguridad, pais, tipo_contrato, estado) 
-                VALUES ('Admin Principal', 'admin@techcorp.com', 'admin123', 1, 1, 5, 'PERU', 'INTERNO', 'ACTIVO')`);
+        // Usuarios
+        // 1. Admin (Sistemas)
+        db.run(`INSERT INTO Usuario (nombre, correo, password, rol_id, departamento_id, nivel_seguridad, pais, tipo_contrato, estado) VALUES ('Admin', 'admin@techcorp.com', '123', 1, 3, 5, 'PERU', 'INTERNO', 'ACTIVO')`);
         
-        console.log('Datos semilla (Admin) insertados correctamente.');
+        // 2. Supervisor Finanzas (Nivel 3)
+        db.run(`INSERT INTO Usuario (nombre, correo, password, rol_id, departamento_id, nivel_seguridad, pais, tipo_contrato, estado) VALUES ('Carlos Supervisor', 'carlos@techcorp.com', '123', 3, 1, 3, 'PERU', 'INTERNO', 'ACTIVO')`);
+        
+        // 3. Empleado RRHH (Nivel 2)
+        db.run(`INSERT INTO Usuario (nombre, correo, password, rol_id, departamento_id, nivel_seguridad, pais, tipo_contrato, estado) VALUES ('Ana Empleada', 'ana@techcorp.com', '123', 4, 2, 2, 'PERU', 'INTERNO', 'ACTIVO')`);
+        
+        // 4. Invitado (Nivel 1, Externo)
+        db.run(`INSERT INTO Usuario (nombre, correo, password, rol_id, departamento_id, nivel_seguridad, pais, tipo_contrato, estado) VALUES ('Juan Invitado', 'juan@externo.com', '123', 6, 2, 1, 'PERU', 'EXTERNO', 'ACTIVO')`);
+
+        // 5. Usuario Inactivo
+        db.run(`INSERT INTO Usuario (nombre, correo, password, rol_id, departamento_id, nivel_seguridad, pais, tipo_contrato, estado) VALUES ('Luis Despedido', 'luis@techcorp.com', '123', 4, 1, 2, 'PERU', 'INTERNO', 'INACTIVO')`);
+
+        // Documentos de Prueba
+        // Doc 1: Presupuesto Finanzas (Nivel 3)
+        db.run(`INSERT INTO Documento (titulo, descripcion, propietario_id, departamento_id, nivel_confidencialidad, estado, pais) VALUES ('Presupuesto', 'Data', 1, 1, 3, 'PENDIENTE', 'PERU')`);
+        
+        // Doc 2: Manual Publicado (Nivel 1)
+        db.run(`INSERT INTO Documento (titulo, descripcion, propietario_id, departamento_id, nivel_confidencialidad, estado, pais) VALUES ('Manual Publico', 'Data', 1, 2, 1, 'PUBLICADO', 'PERU')`);
+
+        // Doc 3: Confidencial Nivel 4 (Solo visible de 8am a 6pm)
+        db.run(`INSERT INTO Documento (titulo, descripcion, propietario_id, departamento_id, nivel_confidencialidad, estado, pais) VALUES ('Alta gerencia', 'Data', 1, 1, 4, 'PENDIENTE', 'PERU')`);
+
+        console.log('Datos de prueba para escenarios generados.');
       }
     });
 
