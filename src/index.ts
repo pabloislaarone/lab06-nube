@@ -3,6 +3,7 @@ import { initDB } from './database';
 import db from './database';
 import authRoutes from './routes/auth';
 import documentoRoutes from './routes/documentos';
+import usuarioRoutes from './routes/usuarios'; // <-- Nuevo
 
 const app = express();
 const port = 3000;
@@ -13,8 +14,8 @@ initDB();
 
 app.use('/auth', authRoutes);
 app.use('/documentos', documentoRoutes);
+app.use('/usuarios', usuarioRoutes); // <-- Nuevo
 
-// GET /auditoria - Endpoint directo para consultar registros (solo ADMIN y AUDITOR por RBAC base)
 app.get('/auditoria', (req, res) => {
   db.all(`SELECT * FROM Auditoria ORDER BY fecha DESC`, [], (err, rows) => {
     if (err) return res.status(500).json({ error: 'Error consultando auditoría.' });
