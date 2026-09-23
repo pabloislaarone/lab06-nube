@@ -1,0 +1,36 @@
+{
+  "name": "lab06-nube",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsx watch src/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pabloislaarone/lab06-nube.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/pabloislaarone/lab06-nube/issues"
+  },
+  "homepage": "https://github.com/pabloislaarone/lab06-nube#readme",
+  "dependencies": {
+    "dotenv": "^18.0.3",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^6.0.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^26.6.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
