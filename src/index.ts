@@ -1,20 +1,25 @@
 import express from 'express';
 import { initDB } from './database';
+import db from './database';
 import authRoutes from './routes/auth';
+import documentoRoutes from './routes/documentos';
 
 const app = express();
 const port = 3000;
 
 app.use(express.json());
 
-// Inicializar la base de datos
 initDB();
 
-// Registrar rutas
 app.use('/auth', authRoutes);
+app.use('/documentos', documentoRoutes);
 
-app.get('/', (req, res) => {
-  res.send('SecureDocs API - Inicializada');
+// GET /auditoria - Endpoint directo para consultar registros (solo ADMIN y AUDITOR por RBAC base)
+app.get('/auditoria', (req, res) => {
+  db.all(`SELECT * FROM Auditoria ORDER BY fecha DESC`, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: 'Error consultando auditoría.' });
+    res.json(rows);
+  });
 });
 
 app.listen(port, () => {
