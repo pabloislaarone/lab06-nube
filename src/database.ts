@@ -91,6 +91,28 @@ export const initDB = () => {
       motivo TEXT
     )`);
 
+    db.get("SELECT COUNT(*) AS count FROM Usuario", [], (err, row: any) => {
+      if (err) {
+        console.error("Error consultando usuarios:", err);
+        return;
+      }
+      
+      // Solo inserta si no hay usuarios en la base de datos
+      if (row.count === 0) {
+        // Insertar Departamento base
+        db.run(`INSERT INTO Departamento (nombre) VALUES ('SISTEMAS')`);
+        
+        // Insertar Rol base
+        db.run(`INSERT INTO Rol (nombre) VALUES ('ADMINISTRADOR')`);
+        
+        // Insertar Usuario Administrador
+        db.run(`INSERT INTO Usuario (nombre, correo, password, rol_id, departamento_id, nivel_seguridad, pais, tipo_contrato, estado) 
+                VALUES ('Admin Principal', 'admin@techcorp.com', 'admin123', 1, 1, 5, 'PERU', 'INTERNO', 'ACTIVO')`);
+        
+        console.log('Datos semilla (Admin) insertados correctamente.');
+      }
+    });
+
     console.log('Tablas del modelo de datos inicializadas.');
   });
 };
