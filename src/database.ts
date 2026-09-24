@@ -91,47 +91,33 @@ export const initDB = () => {
       motivo TEXT
     )`);
 
-    // --- Insertar datos semilla (Seeders para las Pruebas) ---
+// --- Insertar datos semilla (Seeders para las Pruebas) ---
     db.get("SELECT COUNT(*) AS count FROM Usuario", [], (err, row: any) => {
-      if (err) {
-        console.error("Error consultando usuarios:", err);
-        return;
-      }
+      if (err) return console.error("Error consultando usuarios:", err);
       
       if (row.count === 0) {
-        // Departamentos
-        db.run(`INSERT INTO Departamento (nombre) VALUES ('FINANZAS'), ('RRHH'), ('SISTEMAS')`);
-        
-        // Roles (RBAC)
-        db.run(`INSERT INTO Rol (nombre) VALUES ('ADMINISTRADOR'), ('GERENTE'), ('SUPERVISOR'), ('EMPLEADO'), ('AUDITOR'), ('INVITADO')`);
-        
-        // Usuarios
-        // 1. Admin (Sistemas)
-        db.run(`INSERT INTO Usuario (nombre, correo, password, rol_id, departamento_id, nivel_seguridad, pais, tipo_contrato, estado) VALUES ('Admin', 'admin@techcorp.com', '123', 1, 3, 5, 'PERU', 'INTERNO', 'ACTIVO')`);
-        
-        // 2. Supervisor Finanzas (Nivel 3)
-        db.run(`INSERT INTO Usuario (nombre, correo, password, rol_id, departamento_id, nivel_seguridad, pais, tipo_contrato, estado) VALUES ('Carlos Supervisor', 'carlos@techcorp.com', '123', 3, 1, 3, 'PERU', 'INTERNO', 'ACTIVO')`);
-        
-        // 3. Empleado RRHH (Nivel 2)
-        db.run(`INSERT INTO Usuario (nombre, correo, password, rol_id, departamento_id, nivel_seguridad, pais, tipo_contrato, estado) VALUES ('Ana Empleada', 'ana@techcorp.com', '123', 4, 2, 2, 'PERU', 'INTERNO', 'ACTIVO')`);
-        
-        // 4. Invitado (Nivel 1, Externo)
-        db.run(`INSERT INTO Usuario (nombre, correo, password, rol_id, departamento_id, nivel_seguridad, pais, tipo_contrato, estado) VALUES ('Juan Invitado', 'juan@externo.com', '123', 6, 2, 1, 'PERU', 'EXTERNO', 'ACTIVO')`);
-
-        // 5. Usuario Inactivo
-        db.run(`INSERT INTO Usuario (nombre, correo, password, rol_id, departamento_id, nivel_seguridad, pais, tipo_contrato, estado) VALUES ('Luis Despedido', 'luis@techcorp.com', '123', 4, 1, 2, 'PERU', 'INTERNO', 'INACTIVO')`);
-
-        // Documentos de Prueba
-        // Doc 1: Presupuesto Finanzas (Nivel 3)
-        db.run(`INSERT INTO Documento (titulo, descripcion, propietario_id, departamento_id, nivel_confidencialidad, estado, pais) VALUES ('Presupuesto', 'Data', 1, 1, 3, 'PENDIENTE', 'PERU')`);
-        
-        // Doc 2: Manual Publicado (Nivel 1)
-        db.run(`INSERT INTO Documento (titulo, descripcion, propietario_id, departamento_id, nivel_confidencialidad, estado, pais) VALUES ('Manual Publico', 'Data', 1, 2, 1, 'PUBLICADO', 'PERU')`);
-
-        // Doc 3: Confidencial Nivel 4 (Solo visible de 8am a 6pm)
-        db.run(`INSERT INTO Documento (titulo, descripcion, propietario_id, departamento_id, nivel_confidencialidad, estado, pais) VALUES ('Alta gerencia', 'Data', 1, 1, 4, 'PENDIENTE', 'PERU')`);
-
-        console.log('Datos de prueba para escenarios generados.');
+        db.serialize(() => { // Fuerza el orden exacto de inserción
+          // Departamentos
+          db.run(`INSERT INTO Departamento (id, nombre) VALUES (1, 'FINANZAS'), (2, 'RRHH'), (3, 'SISTEMAS')`);
+          
+          // Roles (RBAC)
+          db.run(`INSERT INTO Rol (id, nombre) VALUES (1, 'ADMINISTRADOR'), (2, 'GERENTE'), (3, 'SUPERVISOR'), (4, 'EMPLEADO'), (5, 'AUDITOR'), (6, 'INVITADO')`);
+          
+          // Usuarios
+          db.run(`INSERT INTO Usuario (id, nombre, correo, password, rol_id, departamento_id, nivel_seguridad, pais, tipo_contrato, estado) VALUES (1, 'Admin', 'admin@techcorp.com', '123', 1, 3, 5, 'PERU', 'INTERNO', 'ACTIVO')`);
+          db.run(`INSERT INTO Usuario (id, nombre, correo, password, rol_id, departamento_id, nivel_seguridad, pais, tipo_contrato, estado) VALUES (2, 'Carlos Supervisor', 'carlos@techcorp.com', '123', 3, 1, 3, 'PERU', 'INTERNO', 'ACTIVO')`);
+          db.run(`INSERT INTO Usuario (id, nombre, correo, password, rol_id, departamento_id, nivel_seguridad, pais, tipo_contrato, estado) VALUES (3, 'Ana Empleada', 'ana@techcorp.com', '123', 4, 2, 2, 'PERU', 'INTERNO', 'ACTIVO')`);
+          db.run(`INSERT INTO Usuario (id, nombre, correo, password, rol_id, departamento_id, nivel_seguridad, pais, tipo_contrato, estado) VALUES (4, 'Juan Invitado', 'juan@externo.com', '123', 6, 2, 1, 'PERU', 'EXTERNO', 'ACTIVO')`);
+          db.run(`INSERT INTO Usuario (id, nombre, correo, password, rol_id, departamento_id, nivel_seguridad, pais, tipo_contrato, estado) VALUES (5, 'Luis Despedido', 'luis@techcorp.com', '123', 4, 1, 2, 'PERU', 'INTERNO', 'INACTIVO')`);
+          db.run(`INSERT INTO Usuario (id, nombre, correo, password, rol_id, departamento_id, nivel_seguridad, pais, tipo_contrato, estado) VALUES (6, 'Auditor', 'auditor@techcorp.com', '123', 5, 3, 5, 'PERU', 'INTERNO', 'ACTIVO')`);
+  
+          // Documentos
+          db.run(`INSERT INTO Documento (id, titulo, descripcion, propietario_id, departamento_id, nivel_confidencialidad, estado, pais) VALUES (1, 'Presupuesto', 'Data', 1, 1, 3, 'PENDIENTE', 'PERU')`);
+          db.run(`INSERT INTO Documento (id, titulo, descripcion, propietario_id, departamento_id, nivel_confidencialidad, estado, pais) VALUES (2, 'Manual Publico', 'Data', 1, 2, 1, 'PUBLICADO', 'PERU')`);
+          db.run(`INSERT INTO Documento (id, titulo, descripcion, propietario_id, departamento_id, nivel_confidencialidad, estado, pais) VALUES (3, 'Alta gerencia', 'Data', 1, 1, 4, 'PENDIENTE', 'PERU')`);
+  
+          console.log('Datos de prueba generados con IDs fijos.');
+        });
       }
     });
 

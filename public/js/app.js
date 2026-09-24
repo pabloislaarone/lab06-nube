@@ -173,6 +173,16 @@ async function attemptAction(id, actionType) {
         endpoint = `/documentos/${id}/aprobar`;
     }
 
+    Swal.fire({
+        title: 'Verificando Políticas...',
+        html: '<span class="text-xs text-gray-400 font-mono">Evaluando matrices RBAC y ABAC</span>',
+        background: '#1e293b',
+        color: '#f8fafc',
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        didOpen: () => { Swal.showLoading() }
+    });
+
     try {
         const response = await fetch(`${API_URL}${endpoint}`, {
             method: method,
@@ -185,12 +195,47 @@ async function attemptAction(id, actionType) {
         if (response.ok) {
             let msg = data.mensaje || "Operación permitida";
             if (actionType === 'READ') msg = `Lectura exitosa: ${data.titulo}`;
-            Swal.fire({ icon: 'success', title: 'Permitido (RBAC+ABAC)', text: msg });
+            
+            Swal.fire({
+                toast: true,
+                position: 'bottom-end',
+                icon: 'success',
+                title: '¡Acceso Concedido!',
+                text: msg,
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true,
+                background: '#0f172a',
+                color: '#34d399',
+                iconColor: '#10b981',
+                customClass: { popup: 'border-l-4 border-green-500 shadow-2xl' }
+            });
         } else {
-            Swal.fire({ icon: 'error', title: 'Denegado', text: data.error });
+            Swal.fire({
+                icon: 'error',
+                title: 'ACCESO DENEGADO',
+                text: data.error,
+                background: '#0f172a',
+                color: '#f8fafc',
+                iconColor: '#ef4444',
+                backdrop: `rgba(15, 23, 42, 0.85)`,
+                confirmButtonText: '<i class="fa-solid fa-shield-halved mr-1"></i> Entendido',
+                confirmButtonColor: '#ef4444',
+                customClass: {
+                    popup: 'border border-red-500/30 shadow-[0_0_40px_rgba(239,68,68,0.2)] rounded-xl',
+                    title: 'text-2xl tracking-wider font-bold text-red-500',
+                    confirmButton: 'hover:bg-red-700 transition-colors'
+                }
+            });
         }
     } catch (err) {
-        Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo contactar al servidor.' });
+        Swal.fire({ 
+            icon: 'warning', 
+            title: 'Fallo de Red', 
+            text: 'Servidor inalcanzable.',
+            background: '#0f172a',
+            color: '#f8fafc' 
+        });
     }
 }
 
