@@ -51,6 +51,14 @@ Sistema de gestión de documentos y expedientes con control de acceso basado en 
 | `npm test` | Ejecuta los casos de prueba |
 | `npm run db:reset` | Elimina la base de datos para regenerarla en el siguiente inicio |
 
+## Documentación
+
+- [Diagrama de arquitectura](docs/arquitectura.md)
+- [Modelo de base de datos](docs/modelo-datos.md)
+- [Matrices RBAC y ABAC](docs/matrices.md)
+- [Casos de prueba](docs/casos-prueba.md)
+- [Registro de auditoría](docs/auditoria.md)
+
 ## Cuentas de prueba
 
 Contraseña para todas: `123`
