@@ -1,58 +1,43 @@
 import { Router } from 'express';
-import jwt from 'jsonwebtoken';
-import db from '../database';
+import { autenticar, firmarToken, revocarToken } from '../auth/autenticacion';
+import { verificarPassword } from '../auth/password';
+import { evaluarABAC } from '../authorization/abac/motor';
+import { obtenerEntorno } from '../authorization/entorno';
+import { permisosDeRol } from '../authorization/rbac';
+import { auditar } from '../services/auditoria';
+import { buscarCredenciales, buscarUsuarioPorId } from '../services/usuarios';
+import { rechazar, texto } from '../http';
 
 const router = Router();
-const SECRET_KEY = 'clave_secreta_securedocs_2026'; 
 
-router.post('/login', (req, res) => {
-  const { correo, password } = req.body;
+router.post('/login', auditar('LOGIN', () => 'sesion'), async (req, res) => {
+  const correo = texto(req.body?.correo, 'correo').toLowerCase();
+  const password = texto(req.body?.password, 'password');
+  res.locals.identidad = correo;
 
-  if (!correo || !password) {
-    return res.status(400).json({ error: 'Faltan credenciales.' });
-  }
+  const credenciales = await buscarCredenciales(correo);
+  const usuario = credenciales && verificarPassword(password, credenciales.password_hash)
+    ? await buscarUsuarioPorId(credenciales.id)
+    : undefined;
+  if (!usuario) return rechazar(res, 401, 'Credenciales inválidas.');
 
-  const query = `
-    SELECT u.*, r.nombre as rol_nombre, d.nombre as departamento_nombre 
-    FROM Usuario u
-    LEFT JOIN Rol r ON u.rol_id = r.id
-    LEFT JOIN Departamento d ON u.departamento_id = d.id
-    WHERE u.correo = ? AND u.password = ?
-  `;
+  const abac = await evaluarABAC({ usuario, accion: 'LOGIN', entorno: obtenerEntorno(req) });
+  if (!abac.permitido) return rechazar(res, 403, `Denegado por ABAC: ${abac.motivo}`, { etapa: 'ABAC' });
 
-  db.get(query, [correo, password], (err, row: any) => {
-    if (err) {
-      return res.status(500).json({ error: 'Error interno del servidor.' });
-    }
+  res.locals.usuario = usuario;
+  res.locals.motivo = 'Autenticación exitosa.';
+  res.json({ mensaje: 'Autenticación exitosa.', token: firmarToken(usuario.id), usuario, permisos: await permisosDeRol(usuario.rol) });
+});
 
-    if (!row) {
-      return res.status(401).json({ error: 'Credenciales inválidas.' });
-    }
+router.post('/logout', auditar('LOGOUT', () => 'sesion'), autenticar, (_req, res) => {
+  revocarToken(res.locals.token);
+  res.locals.motivo = 'Sesión cerrada.';
+  res.json({ mensaje: 'Sesión cerrada.' });
+});
 
-    if (row.estado !== 'ACTIVO') {
-      return res.status(403).json({ error: 'Usuario inactivo o suspendido.' }); // Política 7 de ABAC parcial
-    }
-
-    const payload = {
-      id: row.id,
-      nombre: row.nombre,
-      correo: row.correo,
-      rol: row.rol_nombre,
-      departamento: row.departamento_nombre,
-      nivel_seguridad: row.nivel_seguridad,
-      pais: row.pais,
-      tipo_contrato: row.tipo_contrato,
-      estado: row.estado
-    };
-
-    const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '2h' });
-
-    res.json({ 
-      mensaje: 'Autenticación exitosa', 
-      token,
-      usuario: payload
-    });
-  });
+router.get('/me', autenticar, async (_req, res) => {
+  const { usuario } = res.locals;
+  res.json({ usuario, permisos: await permisosDeRol(usuario.rol) });
 });
 
 export default router;
